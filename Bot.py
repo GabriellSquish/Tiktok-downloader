@@ -1,10 +1,6 @@
 import asyncio
 import os
-from telegram import (
-    Update,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-)
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     ApplicationBuilder,
     MessageHandler,
@@ -17,7 +13,7 @@ from deep_translator import GoogleTranslator
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
-# ================= yt-dlp CONFIG =================
+# ========== YDL CONFIG ==========
 INFO_OPTS = {
     "quiet": True,
     "skip_download": True,
@@ -28,11 +24,11 @@ INFO_OPTS = {
 VIDEO_OPTS = {
     "quiet": True,
     "outtmpl": "video.%(ext)s",
-    "format": "mp4/best",
+    "format": "mp4[ext=mp4]+bestaudio/best",
     "nocheckcertificate": True,
 }
 
-# ================= FUNCTIONS =================
+# ========== FUNCTIONS ==========
 async def extract_caption(url: str) -> str:
     def run():
         with yt_dlp.YoutubeDL(INFO_OPTS) as ydl:
@@ -53,17 +49,16 @@ async def download_video(url: str) -> str:
             return ydl.prepare_filename(info)
     return await asyncio.to_thread(run)
 
-# ================= HANDLERS =================
+# ========== HANDLERS ==========
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.strip()
-
     if not text.startswith("http"):
         await update.message.reply_text("❌ Kirim link TikTok / YouTube")
         return
 
     context.user_data["last_url"] = text
     await update.message.reply_text("⚡ Mengambil caption...")
-
+    
     caption = await extract_caption(text)
     translated = translate_id(caption)
     context.user_data["last_caption"] = translated
@@ -102,7 +97,7 @@ async def download_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await query.message.reply_text(f"❌ Gagal download:\n{e}")
 
-# ================= MAIN =================
+# ========== MAIN ==========
 def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
 
@@ -110,7 +105,7 @@ def main():
     app.add_handler(CallbackQueryHandler(copy_caption, pattern="copy"))
     app.add_handler(CallbackQueryHandler(download_handler, pattern="download"))
 
-    print("🤖 Bot caption + downloader aktif 24 jam...")
+    print("🤖 Bot TikTok + YouTube full video aktif 24 jam...")
     app.run_polling()
 
 if __name__ == "__main__":
