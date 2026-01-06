@@ -1,1 +1,3 @@
-worker: python bot.py
+python-telegram-bot==21.6
+yt-dlp
+deep-translator
